@@ -1,0 +1,4 @@
+# Ignore sensitive config and TLS keys/certs
+config.json
+server.crt
+server.key
