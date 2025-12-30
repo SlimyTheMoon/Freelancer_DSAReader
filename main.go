@@ -54,6 +54,7 @@ var htmlTemplate = `
 			--text-color: #e0e0e0;
 			--panel-bg: #1e1e1e;
 			--highlight: #00bcd4;
+			--highlight-hover: #00acc1;
 			--error: #cf6679;
 			--success: #03dac6;
 		}
@@ -84,8 +85,14 @@ var htmlTemplate = `
 		}
 		#btn-action { background-color: #d32f2f; color: #fff; width: 120px; }
 		#btn-action.resume { background-color: #388e3c; }
-		#btn-settings { background-color: #333; color: #fff; margin-left: auto; }
-		#btn-settings:hover { background-color: #555; }
+		
+		.nav-btn { background-color: #333; color: #fff; }
+		.nav-btn:hover { background-color: #555; }
+		
+		#btn-export { background-color: var(--highlight); color: #000; }
+		#btn-export:hover { background-color: var(--highlight-hover); }
+
+		.right-aligned { margin-left: auto; display: flex; gap: 10px; }
 
 		/* Status */
 		#status { font-weight: bold; color: #888; }
@@ -93,31 +100,36 @@ var htmlTemplate = `
 		.paused-cue { border-left: 5px solid #d32f2f; padding-left: 15px; }
 
 		/* Modal */
-		#modal-overlay {
+		.modal-overlay {
 			display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
 			background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center;
 		}
-		#settings-modal {
+		.modal-box {
 			background: var(--panel-bg); padding: 30px; border-radius: 8px; 
 			width: 500px; max-width: 90%; box-shadow: 0 4px 15px rgba(0,0,0,0.7);
 		}
 		h2 { margin-top: 0; color: var(--highlight); }
+		label { display: block; margin-top: 15px; color: #aaa; font-size: 12px; }
 		input[type="text"] {
-			width: 100%; padding: 10px; margin: 10px 0; background: #333; 
+			width: 100%; padding: 10px; margin-top: 5px; background: #333; 
 			border: 1px solid #555; color: white; font-family: monospace; box-sizing: border-box;
 		}
 		.modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-		#save-msg { height: 20px; font-size: 12px; margin-top: 5px; }
+		.hint { font-size: 11px; color: #666; margin-top: 2px; }
 	</style>
 </head>
 <body>
 	<div id="controls">
 		<button id="btn-action" onclick="togglePause()">PAUSE</button>
 		<div id="status">STATUS: LIVE</div>
-		<div id="file-display" style="font-size: 12px; color: #666; margin-left: 20px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 400px;">
+		<div id="file-display" style="font-size: 12px; color: #666; margin-left: 20px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 300px;">
 			{{if .LogPath}}Reading: {{.LogPath}}{{else}}NO FILE SELECTED{{end}}
 		</div>
-		<button id="btn-settings" onclick="openSettings()">&#9881; Settings</button>
+		
+		<div class="right-aligned">
+			<button id="btn-export" onclick="openExport()">&#128190; Export</button>
+			<button class="nav-btn" onclick="openSettings()">&#9881; Settings</button>
+		</div>
 	</div>
 
 	<div id="log-container">
