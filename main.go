@@ -21,7 +21,6 @@ import (
 )
 
 // --- CONFIGURATION ---
-// EDIT YOUR DEFAULT PATH HERE:
 const (
 	defaultLogPath = ``
 	port           = ":443"
@@ -236,7 +235,6 @@ var htmlTemplate = `
 			}
 		}
 
-		// Scroll detection
 		window.onscroll = function() {
 			if (!isPaused) {
 				const nearBottom = (window.innerHeight + window.scrollY) >= document.body.offsetHeight - 50;
@@ -249,23 +247,19 @@ var htmlTemplate = `
 `
 
 func main() {
-	// 1. Initialize
 	loadConfig()
 	ensureCert()
 
-	// 2. Handlers
 	http.HandleFunc("/", handleIndex)
 	http.HandleFunc("/stream", handleStream)
 	http.HandleFunc("/config", handleConfig)
+	http.HandleFunc("/download", handleDownload)
 
-	// 3. Start
 	fmt.Println("----------------------------------------------------------------")
 	fmt.Printf("Freelancer Log Reader Active\n")
 	fmt.Printf("Web Interface: https://localhost%s\n", port)
 	if currentConfig.LogPath != "" {
 		fmt.Printf("Current Log: %s\n", currentConfig.LogPath)
-	} else {
-		fmt.Printf("Current Log: [NOT SET] - Open browser to configure.\n")
 	}
 	fmt.Println("----------------------------------------------------------------")
 
@@ -281,12 +275,7 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 	configMutex.RLock()
 	data := currentConfig
 	configMutex.RUnlock()
-
-	t, err := template.New("index").Parse(htmlTemplate)
-	if err != nil {
-		http.Error(w, "Template Error", 500)
-		return
-	}
+	t, _ := template.New("index").Parse(htmlTemplate)
 	t.Execute(w, data)
 }
 
@@ -342,7 +331,6 @@ func handleStream(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	// Seek to end
 	file.Seek(0, 2)
 	reader := bufio.NewReader(file)
 
@@ -352,17 +340,14 @@ func handleStream(w http.ResponseWriter, r *http.Request) {
 			return
 		default:
 		}
-
 		line, err := reader.ReadString('\n')
 		if err != nil {
 			if err == io.EOF {
 				time.Sleep(200 * time.Millisecond)
-				// Send heartbeat if needed
 				continue
 			}
 			break
 		}
-
 		fmt.Fprintf(w, "data: %s\n\n", line)
 		if f, ok := w.(http.Flusher); ok {
 			f.Flush()
@@ -373,19 +358,14 @@ func handleStream(w http.ResponseWriter, r *http.Request) {
 // --- HELPERS ---
 
 func loadConfig() {
-	// Try to open config file
 	file, err := os.Open(configFile)
 	if err != nil {
-		// File doesn't exist? Use Default Hardcoded Path
 		currentConfig.LogPath = defaultLogPath
 		return
 	}
 	defer file.Close()
-
-	// Decode JSON
-	err = json.NewDecoder(file).Decode(&currentConfig)
-	if err != nil || currentConfig.LogPath == "" {
-		// If JSON is broken or empty, fallback to default
+	json.NewDecoder(file).Decode(&currentConfig)
+	if currentConfig.LogPath == "" {
 		currentConfig.LogPath = defaultLogPath
 	}
 }
@@ -413,11 +393,9 @@ func ensureCert() {
 			ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		}
 		derBytes, _ := x509.CreateCertificate(rand.Reader, &template, &template, &priv.PublicKey, priv)
-
 		fCert, _ := os.Create(certFile)
 		pem.Encode(fCert, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
 		fCert.Close()
-
 		fKey, _ := os.Create(keyFile)
 		pem.Encode(fKey, &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(priv)})
 		fKey.Close()
