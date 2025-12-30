@@ -140,15 +140,33 @@ var htmlTemplate = `
 		{{end}}
 	</div>
 
-	<div id="modal-overlay">
-		<div id="settings-modal">
+	<div id="settings-modal" class="modal-overlay">
+		<div class="modal-box">
 			<h2>Configuration</h2>
-			<p>Enter the full path to your log file:</p>
+			<label>LOG FILE PATH</label>
 			<input type="text" id="path-input" value="{{.LogPath}}" placeholder="C:\Users\Name\...\DSAce.log">
-			<div id="save-msg"></div>
+			<div id="save-msg" style="height:20px; font-size:12px; margin-top:5px;"></div>
 			<div class="modal-buttons">
-				<button onclick="closeSettings()" style="background:transparent; color:#888;">Cancel</button>
+				<button onclick="closeModals()" style="background:transparent; color:#888;">Cancel</button>
 				<button onclick="saveSettings()" style="background:var(--highlight); color:#000;">Save & Reload</button>
+			</div>
+		</div>
+	</div>
+
+	<div id="export-modal" class="modal-overlay">
+		<div class="modal-box">
+			<h2>Export Log Section</h2>
+			<p style="color:#ccc; font-size:13px;">Leave fields empty to include everything.</p>
+
+			<label>START TIME (Format: 30.12.2025 03:42:02)</label>
+			<input type="text" id="export-start" placeholder="30.12.2025 03:42:02">
+
+			<label>END TIME (Format: 30.12.2025 04:00:00)</label>
+			<input type="text" id="export-end" placeholder="31.12.2025 23:59:59">
+			
+			<div class="modal-buttons">
+				<button onclick="closeModals()" style="background:transparent; color:#888;">Cancel</button>
+				<button onclick="performExport()" style="background:var(--success); color:#000;">Download</button>
 			</div>
 		</div>
 	</div>
@@ -157,7 +175,8 @@ var htmlTemplate = `
 		const container = document.getElementById('log-container');
 		const btn = document.getElementById('btn-action');
 		const statusLabel = document.getElementById('status');
-		const modal = document.getElementById('modal-overlay');
+		const settingsModal = document.getElementById('settings-modal');
+		const exportModal = document.getElementById('export-modal');
 		const pathInput = document.getElementById('path-input');
 		const saveMsg = document.getElementById('save-msg');
 		
@@ -165,18 +184,20 @@ var htmlTemplate = `
 		let messageBuffer = [];
 		let autoScroll = true;
 
-		// --- LOGIC ---
-
-		function openSettings() { modal.style.display = 'flex'; pathInput.focus(); }
-		function closeSettings() { modal.style.display = 'none'; saveMsg.textContent = ''; }
+		// --- MODAL LOGIC ---
+		function openSettings() { settingsModal.style.display = 'flex'; pathInput.focus(); }
+		function openExport() { exportModal.style.display = 'flex'; document.getElementById('export-start').focus(); }
+		function closeModals() { 
+			settingsModal.style.display = 'none'; 
+			exportModal.style.display = 'none';
+			saveMsg.textContent = ''; 
+		}
 
 		function saveSettings() {
 			const newPath = pathInput.value.trim();
 			if (!newPath) return;
-
 			saveMsg.textContent = "Verifying path...";
 			saveMsg.style.color = "#aaa";
-
 			fetch('/config', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -197,12 +218,25 @@ var htmlTemplate = `
 			});
 		}
 
-		// SSE Connection
+		function performExport() {
+			const start = document.getElementById('export-start').value.trim();
+			const end = document.getElementById('export-end').value.trim();
+			
+			// Build URL with query params
+			const params = new URLSearchParams();
+			if (start) params.append('start', start);
+			if (end) params.append('end', end);
+			
+			// Trigger download
+			window.location.href = '/download?' + params.toString();
+			closeModals();
+		}
+
+		// --- SSE LOGIC ---
 		const evtSource = new EventSource("/stream");
 
 		evtSource.onmessage = function(event) {
-			if (event.data === "HEARTBEAT") return; // Ignore keep-alive
-			
+			if (event.data === "HEARTBEAT") return; 
 			if (isPaused) {
 				messageBuffer.push(event.data);
 				statusLabel.textContent = "STATUS: PAUSED (" + messageBuffer.length + " lines)";
