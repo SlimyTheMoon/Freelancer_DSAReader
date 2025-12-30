@@ -23,7 +23,7 @@ import (
 // --- CONFIGURATION ---
 const (
 	defaultLogPath = ``
-	port           = ":443"
+	port           = ":8443"
 	certFile       = "server.crt"
 	keyFile        = "server.key"
 	configFile     = "config.json"
