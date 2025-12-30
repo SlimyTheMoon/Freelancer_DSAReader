@@ -330,29 +330,114 @@ func handleConfig(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", 405)
 		return
 	}
-
 	var newConfig AppConfig
 	if err := json.NewDecoder(r.Body).Decode(&newConfig); err != nil {
 		http.Error(w, "Invalid JSON", 400)
 		return
 	}
-
-	// Clean path
 	newPath := strings.Trim(newConfig.LogPath, " \"'")
-
-	// Verify file exists
 	if _, err := os.Stat(newPath); os.IsNotExist(err) {
 		http.Error(w, "File does not exist on server", 400)
 		return
 	}
-
-	// Save
 	configMutex.Lock()
 	currentConfig.LogPath = newPath
 	saveConfig()
 	configMutex.Unlock()
-
 	w.WriteHeader(http.StatusOK)
+}
+
+func handleDownload(w http.ResponseWriter, r *http.Request) {
+	configMutex.RLock()
+	path := currentConfig.LogPath
+	configMutex.RUnlock()
+
+	if path == "" {
+		http.Error(w, "No log file configured", 400)
+		return
+	}
+
+	// 1. Parse Query Parameters (start, end)
+	queryStart := r.URL.Query().Get("start")
+	queryEnd := r.URL.Query().Get("end")
+
+	var startTime, endTime time.Time
+	var err error
+	inputLayout := "02.01.2006 15:04:05"
+
+	if queryStart != "" {
+		startTime, err = time.Parse(inputLayout, queryStart)
+		if err != nil {
+			http.Error(w, "Invalid Start Time format. Use DD.MM.YYYY HH:MM:SS", 400)
+			return
+		}
+	}
+	if queryEnd != "" {
+		endTime, err = time.Parse(inputLayout, queryEnd)
+		if err != nil {
+			http.Error(w, "Invalid End Time format. Use DD.MM.YYYY HH:MM:SS", 400)
+			return
+		}
+	}
+
+	file, err := os.Open(path)
+	if err != nil {
+		http.Error(w, "Could not open log file", 500)
+		return
+	}
+	defer file.Close()
+
+	// 2. Set Headers for Download (Markdown)
+	w.Header().Set("Content-Disposition", "attachment; filename=\"log_export.md\"")
+	w.Header().Set("Content-Type", "text/markdown")
+
+	// 3. Start Markdown Code Block
+	fmt.Fprintln(w, "```Exported Log Section:")
+
+	// 4. Scan and Filter
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		if queryStart == "" && queryEnd == "" {
+			fmt.Fprintln(w, line)
+			continue
+		}
+
+		lineTime, hasTime := extractTimeFromLine(line)
+
+		if hasTime {
+			if queryStart != "" && lineTime.Before(startTime) {
+				continue
+			}
+			if queryEnd != "" && lineTime.After(endTime) {
+				continue
+			}
+			fmt.Fprintln(w, line)
+		} else {
+			if queryStart == "" {
+				fmt.Fprintln(w, line)
+			}
+		}
+	}
+
+	// 5. End Markdown Code Block
+	fmt.Fprintln(w, "```")
+}
+
+func extractTimeFromLine(line string) (time.Time, bool) {
+	if len(line) < 21 {
+		return time.Time{}, false
+	}
+	if line[0] != '[' || line[20] != ']' {
+		return time.Time{}, false
+	}
+	timeStr := line[1:20]
+	t, err := time.Parse("02.01.2006 15:04:05", timeStr)
+	if err != nil {
+		return time.Time{}, false
+	}
+	return t, true
 }
 
 func handleStream(w http.ResponseWriter, r *http.Request) {
