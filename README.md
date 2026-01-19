@@ -1,56 +1,88 @@
-# Freelancer_DSAReader
+# Freelancer DSA Reader v1.1
 
-Using this tool is straight forward:
+A cyberpunk-styled log reader for Freelancer with real-time streaming and export capabilities.
 
-First, for linux and windows put the corresponding file in a folder where the programm shall run.
+## Features
 
+- 🔴 **Real-time Log Streaming** - Watch log files update live via Server-Sent Events
+- ⏸ **Pause/Resume** - Buffer incoming logs while paused
+- ⬇ **Time-based Export** - Export log sections by timestamp range
+- 🎨 **Cyberpunk UI** - Sci-fi themed interface with CRT effects
+- 🔒 **Self-signed HTTPS** - Automatic certificate generation
 
-Under Windows, run the DSAReader.exe,
-after that, if you are asked if you want this application to be available publicly or in lan, feel free to cancel, for me it worked then on my pc anyway, then navigate to https://localhost:8443 in your browser.
+## Quick Start
 
-Under linux, you first need to make it executable using:
+### Windows
 
-```
-chmod +x DSAReader-linux
-```
-and then you can run it using:
+Run `dsa_reader.exe` and navigate to https://localhost:8443 in your browser.
 
-```
-./DSAReader-linux
-```
+### Linux
 
-directly from the terminal.
-
-
-In case you want to compile the source code on your own:
-
-Go to the official website of go,
-you can google it or take this link:
-https://go.dev/
-
-Install it for your operating system, so we can proceed.
-
-UNDER WINDOWS:
-
-First, put the main.go you can download under releases or from the repository itself in a folder of your choice, maybe even, where the programm shall run.
-
-Then you open your terminal at this place and run the following command:
-
-```
-go build -o DSAReader.exe main.go
+```bash
+chmod +x dsa_reader_linux
+./dsa_reader_linux
 ```
 
-Now the executable is ready.
+---
 
+## Compiling from Source
 
-UNDER LINUX:
+### Prerequisites
 
-First, put the main.go you can download under releases or from the repository itself in a folder of your choice, maybe even, where the programm shall run.
+Install Go from https://go.dev/ for your operating system.
 
-then run the following command from your terminal from the directory the main.go resides in, make sure, the architecture matches the one you are using:
+### Windows
 
+```powershell
+# Navigate to the project directory
+cd path\to\Freelancer_DSAReader
+
+# Build Windows executable
+go build -o dsa_reader.exe .
 ```
-GOOS=linux GOARCH=amd64 go build -o freelancer-reader.exe main.go
+
+### Linux (from Windows - Cross-compilation)
+
+```powershell
+# Navigate to the project directory
+cd path\to\Freelancer_DSAReader
+
+# Set environment variables for Linux
+$env:GOOS = "linux"
+$env:GOARCH = "amd64"
+
+# Build Linux executable
+go build -o dsa_reader_linux .
+
+# Or as a single command:
+go build -o dsa_reader_linux -ldflags "-s -w" -buildvcs=false
 ```
 
-Now you can proceed with the how to use above!
+### Linux (native compilation)
+
+```bash
+# Navigate to the project directory
+cd /path/to/Freelancer_DSAReader
+
+# Build Linux executable
+GOOS=linux GOARCH=amd64 go build -o dsa_reader_linux .
+```
+
+---
+
+## Usage
+
+1. Launch the application
+2. Click **CONFIG** to set your Freelancer log file path
+3. Click **SAVE & REBOOT** to apply
+4. Logs will stream in real-time
+5. Use **PAUSE SYSTEM** to pause/resume streaming
+6. Use **EXPORT** to download log sections by time range
+
+---
+
+## Notes
+
+- First run generates a self-signed SSL certificate
+- Config is saved to `config.json`
+- Logs are not modified - read-only access
