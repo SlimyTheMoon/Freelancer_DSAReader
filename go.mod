@@ -1,3 +1,3 @@
-module github.com/marvindeckerd/dsa_reader_2.0
+module github.com/SlimyTheMoon/Freelancer_DSAReader
 
 go 1.25.5
