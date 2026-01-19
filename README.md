@@ -14,13 +14,13 @@ A cyberpunk-styled log reader for Freelancer with real-time streaming and export
 
 ### Windows
 
-Run `dsa_reader.exe` and navigate to https://localhost:8443 in your browser.
+Run `DSAReader.exe` and navigate to https://localhost:8443 in your browser.
 
 ### Linux
 
 ```bash
-chmod +x dsa_reader_linux
-./dsa_reader_linux
+chmod +x DSAReader-linux
+./DSAReader-linux
 ```
 
 ---
@@ -38,7 +38,7 @@ Install Go from https://go.dev/ for your operating system.
 cd path\to\Freelancer_DSAReader
 
 # Build Windows executable
-go build -o dsa_reader.exe .
+go build -o DSAReader.exe .
 ```
 
 ### Linux (from Windows - Cross-compilation)
@@ -55,7 +55,7 @@ $env:GOARCH = "amd64"
 go build -o dsa_reader_linux .
 
 # Or as a single command:
-go build -o dsa_reader_linux -ldflags "-s -w" -buildvcs=false
+go build -o DSAReader-linux -ldflags "-s -w" -buildvcs=false
 ```
 
 ### Linux (native compilation)
@@ -65,7 +65,7 @@ go build -o dsa_reader_linux -ldflags "-s -w" -buildvcs=false
 cd /path/to/Freelancer_DSAReader
 
 # Build Linux executable
-GOOS=linux GOARCH=amd64 go build -o dsa_reader_linux .
+GOOS=linux GOARCH=amd64 go build -o DSAReader-linux .
 ```
 
 ---
