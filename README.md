@@ -52,7 +52,7 @@ $env:GOOS = "linux"
 $env:GOARCH = "amd64"
 
 # Build Linux executable
-go build -o dsa_reader_linux .
+go build -o DSAReader-linux .
 
 # Or as a single command:
 go build -o DSAReader-linux -ldflags "-s -w" -buildvcs=false
